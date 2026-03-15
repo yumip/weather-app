@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider, CssBaseline, Container, Typography } from '@mui/material';
 import theme from './theme';
+import { WeatherPage } from './features/weather/pages/WeatherPage';
 
 const queryClient = new QueryClient();
 
@@ -13,7 +14,8 @@ export default function App() {
           <Typography variant="h4" component="h1" gutterBottom>
             Weather Intelligence Dashboard
           </Typography>
-          {/* WeatherFeature and HistoryList will be composed here in Prompt 3 & 4 */}
+          <WeatherPage />
+          {/* HistoryList will be composed here in Prompt 4 */}
         </Container>
       </ThemeProvider>
     </QueryClientProvider>

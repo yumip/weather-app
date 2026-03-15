@@ -2,9 +2,9 @@ export const fetchAndParse = async (request: Request): Promise<Response> => {
   const response = await fetch(request);
 
   if (!response.ok) {
+    let errorMessage = "Something went wrong. Please try again later!";
     try {
       const responseData: unknown = await response.json();
-      let errorMessage;
 
       if (
         (response.status === 400 || response.status === 500) &&
@@ -14,15 +14,11 @@ export const fetchAndParse = async (request: Request): Promise<Response> => {
         typeof responseData.message === "string"
       ) {
         errorMessage = responseData.message;
-      } else {
-        errorMessage = "Something went wrong. Please try again later!";
       }
-
-      throw new Error(errorMessage);
-    } catch (error) {
-      const { message } = error as Error;
-      throw new Error(message);
+    } catch {
+      // keep fallback message
     }
+    throw new Error(errorMessage);
   }
 
   return response;
