@@ -7,7 +7,7 @@ export const METHOD_TYPES = {
 
 export type MethodType = (typeof METHOD_TYPES)[keyof typeof METHOD_TYPES];
 
-const DEFAULT_BASE_URL = "http://localhost:5174";
+const DEFAULT_BASE_URL = "http://localhost:5173";
 
 export const RequestFactory = {
   createRequest: (

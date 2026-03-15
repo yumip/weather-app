@@ -7,13 +7,12 @@ export const fetchAndParse = async (request: Request): Promise<Response> => {
       const responseData: unknown = await response.json();
 
       if (
-        (response.status === 400 || response.status === 500) &&
         typeof responseData === "object" &&
         responseData !== null &&
-        "message" in responseData &&
-        typeof responseData.message === "string"
+        "error" in responseData &&
+        typeof responseData.error === "string"
       ) {
-        errorMessage = responseData.message;
+        errorMessage = responseData.error as string;
       }
     } catch {
       // keep fallback message

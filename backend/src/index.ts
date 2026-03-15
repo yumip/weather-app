@@ -12,13 +12,13 @@ app.use('/api', weatherRoutes);
 async function start(): Promise<void> {
   try {
     await AppDataSource.initialize();
-    console.log('Database connected');
+    console.info('Database connected');
   } catch {
     console.warn('Database unavailable — history feature disabled');
   }
 
   app.listen(PORT, () => {
-    console.log(`Backend running on http://localhost:${PORT}`);
+    console.info(`Backend running on http://localhost:${PORT}`);
   });
 }
 

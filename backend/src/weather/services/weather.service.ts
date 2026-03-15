@@ -4,6 +4,7 @@ import {
   geocodingPayloadSchema,
 } from "../schemas/open-meteo.payload.schema";
 import { WeatherResult } from "../types/weather.types";
+import { parseOrThrow } from "../utils/parse-or-throw";
 
 // ── Service ───────────────────────────────────────────────────────────────
 
@@ -19,7 +20,12 @@ export async function getWeatherByCity(city: string): Promise<WeatherResult> {
   // 1. Geocode
   const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en&format=json`;
   const geoRaw = await fetchJson(geoUrl);
-  const geoData = geocodingPayloadSchema.parse(geoRaw);
+  const geoData = parseOrThrow(
+    geocodingPayloadSchema,
+    geoRaw,
+    "Invalid geocoding response",
+  );
+
   const { latitude, longitude, name, country } = geoData.results[0];
 
   // 2. Forecast — current_weather + first hourly humidity reading
@@ -32,7 +38,11 @@ export async function getWeatherByCity(city: string): Promise<WeatherResult> {
     `&timezone=auto`;
 
   const forecastRaw = await fetchJson(forecastUrl);
-  const forecast = forecastPayloadSchema.parse(forecastRaw);
+  const forecast = parseOrThrow(
+    forecastPayloadSchema,
+    forecastRaw,
+    "Invalid forecast response",
+  );
 
   const { temperature, windspeed, weathercode } = forecast.current_weather;
   const humidity = forecast.hourly.relativehumidity_2m[0] ?? 0;
