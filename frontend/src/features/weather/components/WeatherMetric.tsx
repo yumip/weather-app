@@ -12,14 +12,7 @@ export function WeatherMetric({ label, value, unit, icon }: WeatherMetricProps) 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
       {icon && (
-        <Box
-          sx={{
-            color: 'primary.main',
-            display: 'flex',
-            alignItems: 'center',
-            '& svg': { fontSize: 32 },
-          }}
-        >
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {icon}
         </Box>
       )}

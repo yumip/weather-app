@@ -17,7 +17,7 @@ export function WeatherCard({ data }: WeatherCardProps) {
 
   return (
     <Card>
-      <CardContent sx={{ p: 3 }}>
+      <CardContent>
         <Typography variant="h4" component="h2" gutterBottom>
           {city}
           {country && (

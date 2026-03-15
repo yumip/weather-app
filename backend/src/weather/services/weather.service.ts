@@ -37,11 +37,14 @@ export async function getWeatherByCity(city: string): Promise<WeatherResult> {
   const { temperature, windspeed, weathercode } = forecast.current_weather;
   const humidity = forecast.hourly.relativehumidity_2m[0] ?? 0;
 
-  // 3. Persist (non-blocking failure — history is optional)
+  // 3. Persist (non-blocking — DB being down must not fail the weather response)
   try {
     await searchHistoryRepository.save(name, temperature);
-  } catch {
-    // DB unavailable should not fail the weather response
+  } catch (e) {
+    console.warn(
+      "[history] persist failed:",
+      e instanceof Error ? e.message : e,
+    );
   }
 
   return {

@@ -43,7 +43,7 @@ export function SearchInput({
                 {loading ? (
                   <CircularProgress size={20} color="inherit" />
                 ) : (
-                  <SearchIcon />
+                  <SearchIcon fontSize="medium" />
                 )}
               </IconButton>
             </InputAdornment>

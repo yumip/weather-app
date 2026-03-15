@@ -31,13 +31,10 @@ export async function handleGetWeather(
 }
 
 export async function handleGetHistory(
-  event: HandlerEvent,
+  _event: HandlerEvent,
 ): Promise<HandlerResponse> {
-  const limitParam = event.queryStringParameters?.limit;
-  const limit = limitParam ? Math.min(parseInt(limitParam, 10), 50) : 10;
-
   try {
-    const history = await searchHistoryRepository.findRecent(limit);
+    const history = await searchHistoryRepository.findRecent();
     return ok(history);
   } catch {
     return err(503, "History unavailable");

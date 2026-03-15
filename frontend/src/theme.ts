@@ -41,6 +41,14 @@ const theme = createTheme({
         },
       },
     },
+    MuiCardContent: {
+      styleOverrides: {
+        root: {
+          padding: 24,
+          '&:last-child': { paddingBottom: 24 },
+        },
+      },
+    },
     MuiTextField: {
       defaultProps: {
         variant: 'outlined',
@@ -64,6 +72,33 @@ const theme = createTheme({
     MuiChip: {
       styleOverrides: {
         root: { fontWeight: 500 },
+      },
+    },
+    MuiListItemButton: {
+      styleOverrides: {
+        root: {
+          paddingTop: 6,
+          paddingBottom: 6,
+          borderRadius: 8,
+        },
+      },
+    },
+    MuiListItemText: {
+      defaultProps: {
+        primaryTypographyProps: { variant: 'body1' },
+        secondaryTypographyProps: { variant: 'caption' },
+      },
+      styleOverrides: {
+        primary: { fontWeight: 500 },
+      },
+    },
+    MuiSvgIcon: {
+      defaultProps: {
+        color: 'primary',
+        fontSize: 'large',
+      },
+      styleOverrides: {
+        fontSizeLarge: { fontSize: '2rem' },
       },
     },
   },
