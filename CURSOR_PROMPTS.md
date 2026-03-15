@@ -1,4 +1,5 @@
 # Cursor Prompt Boilerplate — Weather Intelligence Dashboard
+
 # Model: claude-sonnet-4-5 (Sonnet 4.6 in Cursor)
 
 ---
@@ -67,6 +68,7 @@ Implement the following in /backend/src/:
    - Call weatherService, return 200 with weather data
 
 5. routes/weatherRoutes.ts
+   - GET /api/health - just returns app is alive
    - GET /api/weather?city={city} — wires Express route to handler
    - GET /api/history — returns last 10 search history entries
 
@@ -206,15 +208,17 @@ Context: Assemble the Weather Intelligence Dashboard and complete documentation.
    - `cd frontend && npm install && npm run dev`
 
    ## AWS Deployment Shape
-   ```
-   Browser
-     └─→ CloudFront → S3 (React SPA build)
-           └─→ API Gateway → Lambda (Express handler adapter)
-                   └─→ RDS PostgreSQL (search history)
-   ```
-   - Frontend: `npm run build` → upload /dist to S3 → CloudFront distribution
-   - Backend: wrap Express handlers in a Lambda adapter (e.g. @vendia/serverless-express)
-   - Database: RDS PostgreSQL, connection string via Lambda env var DATABASE_URL
+```
+
+Browser
+└─→ CloudFront → S3 (React SPA build)
+└─→ API Gateway → Lambda (Express handler adapter)
+└─→ RDS PostgreSQL (search history)
+
+```
+- Frontend: `npm run build` → upload /dist to S3 → CloudFront distribution
+- Backend: wrap Express handlers in a Lambda adapter (e.g. @vendia/serverless-express)
+- Database: RDS PostgreSQL, connection string via Lambda env var DATABASE_URL
 
 Rules:
 - No `any`
