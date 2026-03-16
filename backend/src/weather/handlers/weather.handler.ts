@@ -8,6 +8,7 @@ import {
 } from "./weather.handler.contract";
 import { cityQuerySchema } from "../schemas/weather-query.schema";
 import { getWeatherCondition } from "../utils/weather-code";
+import { WeatherError } from "../utils/error";
 
 export async function handleGetWeather(
   event: HandlerEvent,
@@ -24,9 +25,10 @@ export async function handleGetWeather(
       condition: getWeatherCondition(result.weatherCode),
     });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Unexpected error";
-    const isNotFound = message.toLowerCase().includes("city not found");
-    return err(isNotFound ? 404 : 502, message);
+    if (e instanceof WeatherError) {
+      return err(e.statusCode, e.message);
+    }
+    return err(500, "Internal server error");
   }
 }
 

@@ -1,21 +1,21 @@
-import { useState, useEffect } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import { Box, CircularProgress, Alert, Typography, Divider, Paper } from '@mui/material';
-import { SearchInput } from '../../history/components/SearchInput';
-import { WeatherCard } from '../components/WeatherCard';
-import { useWeather } from '../hooks/useWeather';
-import { HistoryList } from '../../history/components/HistoryList';
-import { useHistory } from '../../history/hooks/useHistory';
-import { HISTORY_QUERY_KEYS } from '../../history/constants/query.constants';
-import { WEATHER_QUERY_KEYS } from '../constants/query.constants';
+import { useState, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { Box, Typography, Divider, Paper } from "@mui/material";
+import { SearchInput } from "../../history/components/SearchInput";
+import { WeatherCard } from "../components/WeatherCard";
+import { useWeather } from "../hooks/useWeather";
+import { HistoryPanel } from "../../history/components/HistoryPanel";
+import { HISTORY_QUERY_KEYS } from "../../history/constants/query.constants";
+import { WEATHER_QUERY_KEYS } from "../constants/query.constants";
+import { LoadingState } from "../../../shared/components/LoadingState";
+import { ErrorState } from "../../../shared/components/ErrorState";
 
 export function WeatherPage() {
-  const [inputValue, setInputValue] = useState('');
-  const [searchCity, setSearchCity] = useState('');
+  const [inputValue, setInputValue] = useState("");
+  const [searchCity, setSearchCity] = useState("");
 
   const queryClient = useQueryClient();
   const { data, isLoading, isError, error } = useWeather(searchCity);
-  const { data: historyItems = [] } = useHistory();
 
   // Invalidate history after each successful weather fetch
   useEffect(() => {
@@ -38,18 +38,10 @@ export function WeatherPage() {
 
   const renderResults = () => {
     if (isLoading) {
-      return (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-          <CircularProgress />
-        </Box>
-      );
+      return <LoadingState />;
     }
     if (isError) {
-      return (
-        <Alert severity="error">
-          {error?.message ?? 'Could not load weather data. Please try again.'}
-        </Alert>
-      );
+      return <ErrorState error={error} />;
     }
     if (data) {
       return <WeatherCard data={data} />;
@@ -65,7 +57,7 @@ export function WeatherPage() {
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
       <SearchInput
         value={inputValue}
         onChange={setInputValue}
@@ -74,19 +66,14 @@ export function WeatherPage() {
         placeholder="Enter city name…"
       />
 
-      <Box sx={{ display: 'flex', gap: 3, alignItems: 'flex-start' }}>
+      <Box sx={{ display: "flex", gap: 3, alignItems: "flex-start" }}>
         {/* Main weather panel */}
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          {renderResults()}
-        </Box>
+        <Box sx={{ flex: 1, minWidth: 0 }}>{renderResults()}</Box>
 
         {/* History sidebar */}
-        <Paper
-          variant="outlined"
-          sx={{ width: 260, flexShrink: 0, p: 2 }}
-        >
+        <Paper variant="outlined" sx={{ width: 260, flexShrink: 0, p: 2 }}>
           <Divider sx={{ mb: 2 }} />
-          <HistoryList items={historyItems} onSelect={handleHistorySelect} disabled={isLoading} />
+          <HistoryPanel onSelect={handleHistorySelect} disabled={isLoading} />
         </Paper>
       </Box>
     </Box>

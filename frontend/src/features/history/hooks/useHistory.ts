@@ -8,5 +8,6 @@ export function useHistory() {
     queryKey: HISTORY_QUERY_KEYS.list,
     queryFn: () => getHistory(),
     staleTime: 0,
+    retry: 0,
   });
 }

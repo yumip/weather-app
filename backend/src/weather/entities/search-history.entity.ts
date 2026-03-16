@@ -3,19 +3,19 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-} from 'typeorm';
+} from "typeorm";
 
-@Entity('search_history')
+@Entity("search_history")
 export class SearchHistory {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: "varchar", length: 255 })
   city!: string;
 
-  @Column({ type: 'numeric', precision: 5, scale: 2 })
+  @Column({ type: "numeric", precision: 5, scale: 2 })
   temperature!: number;
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @CreateDateColumn({ type: "timestamptz" })
   timestamp!: Date;
 }

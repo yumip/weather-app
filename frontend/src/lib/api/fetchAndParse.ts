@@ -9,10 +9,10 @@ export const fetchAndParse = async (request: Request): Promise<Response> => {
       if (
         typeof responseData === "object" &&
         responseData !== null &&
-        "error" in responseData &&
-        typeof responseData.error === "string"
+        "message" in responseData &&
+        typeof responseData.message === "string"
       ) {
-        errorMessage = responseData.error as string;
+        errorMessage = responseData.message;
       }
     } catch {
       // keep fallback message

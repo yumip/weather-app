@@ -7,6 +7,6 @@ export async function getWeather(city: string): Promise<WeatherData> {
     METHOD_TYPES.GET,
     `/api/weather?city=${encodeURIComponent(city)}`,
   );
-  const raw = await fetchAndParseJson<WeatherData>(request);
+  const raw = await fetchAndParseJson<unknown>(request);
   return weatherSchema.parse(raw);
 }

@@ -19,12 +19,12 @@ router.get("/health", (_req: Request, res: Response) => {
 
 router.get("/weather", async (req: Request, res: Response) => {
   const result = await handleGetWeather(toHandlerEvent(req));
-  res.status(result.statusCode).json(JSON.parse(result.body));
+  res.status(result.statusCode).json(result.body);
 });
 
 router.get("/history", async (req: Request, res: Response) => {
   const result = await handleGetHistory(toHandlerEvent(req));
-  res.status(result.statusCode).json(JSON.parse(result.body));
+  res.status(result.statusCode).json(result.body);
 });
 
 export default router;

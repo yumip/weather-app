@@ -17,12 +17,10 @@ export const geocodingPayloadSchema = z.object({
 });
 
 export const forecastPayloadSchema = z.object({
-  current_weather: z.object({
-    temperature: z.number(),
-    windspeed: z.number(),
-    weathercode: z.number(),
-  }),
-  hourly: z.object({
-    relativehumidity_2m: z.array(z.number()),
+  current: z.object({
+    temperature_2m: z.number(),
+    wind_speed_10m: z.number(),
+    relative_humidity_2m: z.number(),
+    weather_code: z.number(),
   }),
 });

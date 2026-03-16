@@ -4,16 +4,27 @@ import {
   geocodingPayloadSchema,
 } from "../schemas/open-meteo.payload.schema";
 import { WeatherResult } from "../types/weather.types";
+import { WeatherError } from "../utils/error";
 import { parseOrThrow } from "../utils/parse-or-throw";
 
 // ── Service ───────────────────────────────────────────────────────────────
 
 async function fetchJson(url: string): Promise<unknown> {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Upstream request failed: ${response.status} ${url}`);
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new WeatherError(
+        502,
+        `Upstream request failed: ${response.status}`,
+      );
+    }
+    return response.json();
+  } catch (e) {
+    if (e instanceof WeatherError) {
+      throw e;
+    }
+    throw new WeatherError(502, `Weather service unavailable`);
   }
-  return response.json();
 }
 
 export async function getWeatherByCity(city: string): Promise<WeatherResult> {
@@ -32,9 +43,7 @@ export async function getWeatherByCity(city: string): Promise<WeatherResult> {
   const forecastUrl =
     `https://api.open-meteo.com/v1/forecast` +
     `?latitude=${latitude}&longitude=${longitude}` +
-    `&current_weather=true` +
-    `&hourly=relativehumidity_2m` +
-    `&forecast_days=1` +
+    `&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m` +
     `&timezone=auto`;
 
   const forecastRaw = await fetchJson(forecastUrl);
@@ -44,8 +53,12 @@ export async function getWeatherByCity(city: string): Promise<WeatherResult> {
     "Invalid forecast response",
   );
 
-  const { temperature, windspeed, weathercode } = forecast.current_weather;
-  const humidity = forecast.hourly.relativehumidity_2m[0] ?? 0;
+  const {
+    temperature_2m: temperature,
+    wind_speed_10m: windspeed,
+    weather_code: weathercode,
+    relative_humidity_2m: humidity,
+  } = forecast.current;
 
   // 3. Persist (non-blocking — DB being down must not fail the weather response)
   try {

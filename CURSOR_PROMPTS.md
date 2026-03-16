@@ -104,6 +104,8 @@ Implement the following in /frontend/src/:
    - Props: label (string), value (string | number), unit?: string
    - Displays a single metric (e.g. "Temperature: 22°C")
    - Use MUI Typography
+4. install MUI icons
+  - use icons in an infographic way, similar to https://www.bom.gov.au/
 
 Rules:
 - Strict types; no prop type shortcuts
@@ -116,40 +118,104 @@ Rules:
 ## PROMPT 3 — Frontend: Weather Feature
 
 ```
-Context: Weather Intelligence Dashboard — weather feature slice.
-- React + TypeScript (strict), TanStack Query, Zod, Material UI
+Context: Weather Intelligence Dashboard frontend.
+- React + TypeScript (strict), Material UI, no `any`
+- BOM-inspired aesthetic: clean, data-focused, not decorative
 
-Implement in /frontend/src/features/weather/:
+Tech stack:
+- React
+- TypeScript (strict)
+- TanStack Query
+- Zod
+- Material UI
 
-1. weatherSchema.ts
-   - Zod schema for the API response: city, temperature, condition, windSpeed, humidity, unit, timestamp
-   - Export inferred TypeScript type WeatherData
+Use this folder structure:
 
-2. useWeather.ts (custom hook)
-   - TanStack Query useQuery hook
-   - Fetches GET /api/weather?city={city}
-   - Only fetches when city is non-empty
-   - Validates response with Zod schema; throw if invalid
-   - Returns { data, isLoading, isError, error }
+/frontend/src/features/weather/
+api/
+weather.api.ts
+components/
+WeatherCard.tsx
+hooks/
+useWeather.ts
+schemas/
+weather.schema.ts
+constants/
+weather.constants.ts
+pages/
+WeatherFeature.tsx
 
-3. components/WeatherCard.tsx (organism)
-   - Props: data (WeatherData)
-   - Display: city name, temperature, condition, wind speed, humidity
-   - Use WeatherMetric atom for each metric
-   - MUI Card layout
-   - No inline styles
+Requirements:
 
-4. WeatherFeature.tsx (feature root)
-   - Composes SearchInput + WeatherCard
-   - Manages local city search state
-   - Calls useWeather hook
-   - Shows MUI CircularProgress on loading
-   - Shows MUI Alert on error
+1. `api/weather.api.ts`
+- Implement the endpoint fetch for `GET /api/weather?city={city}`
+- Use the preimplemented helper(s) from `lib/api`
+- This layer must stay strictly focused on request construction / fetching
+- Do not put validation or UI logic here
+- Return raw parsed JSON boundary for validation in the hook
+
+2. `schemas/weather.schema.ts`
+- Define a Zod schema for the API response with:
+- `city`
+- `temperature`
+- `condition`
+- `windSpeed`
+- `humidity`
+- `unit`
+- `timestamp`
+- Export:
+- `weatherSchema`
+- inferred type `WeatherData`
+
+3. `constants/weather.constants.ts`
+- Store feature-level constants such as:
+- TanStack Query key(s)
+- any small weather feature constants if needed
+- Keep this file lightweight; do not move business logic here
+
+4. `hooks/useWeather.ts`
+- Implement a custom hook using TanStack Query `useQuery`
+- Accept `city: string`
+- Only fetch when `city.trim()` is non-empty
+- Call the fetcher from `api/weather.api.ts`
+- Validate the response with `weatherSchema`
+- Throw an error if validation fails
+- Expose:
+- `data`
+- `isLoading`
+- `isError`
+- `error`
+
+6. `components/WeatherCard.tsx`
+- Props: `data: WeatherData`
+- Presentational only
+- Use Material UI Card layout
+- Display:
+- city name
+- temperature
+- condition
+- wind speed
+- humidity
+- Use `WeatherMetric` for each metric
+
+7. `pages/WeatherPage.tsx`
+- Feature root component
+- Compose search input + weather display
+- Manage local city search state
+- Call `useWeather(city)`
+- Show `CircularProgress` during loading
+- Show `Alert` on error
+- Render `WeatherCard` when data exists
 
 Rules:
-- No `any`; all types explicit
-- Keep hook logic out of components
-- Zod schema stays in this feature folder
+- No `any`
+- Keep hook/query logic out of components
+- Keep Zod schema inside this feature folder
+- Do not introduce unnecessary layers like services or mappers unless there is real transformation complexity
+- Prefer maintainable, production-ready structure with clear boundaries
+- Use explicit prop types
+- Infer API response types from Zod instead of duplicating interfaces
+- No inline styles
 ```
 
 ---
@@ -157,17 +223,20 @@ Rules:
 ## PROMPT 4 — Frontend: Search History
 
 ```
+
+```
+
 Context: Weather Intelligence Dashboard — search history feature.
+
 - React + TypeScript (strict), TanStack Query, Material UI
 
 Implement in /frontend/src/features/history/:
 
-1. historySchema.ts
+1. schemas/history.schema.ts
    - Zod schema for history item: city, temperature, timestamp
    - Export inferred type HistoryItem
 
-2. useHistory.ts
-   - TanStack Query useQuery for GET /api/history
+2. hooks/useHistory.ts
    - Validate response array with Zod
    - Refetch after each successful weather search (use queryClient.invalidateQueries)
 
@@ -175,17 +244,31 @@ Implement in /frontend/src/features/history/:
    - Props: items (HistoryItem[])
    - MUI List with city, temperature, and formatted timestamp per item
    - Show "No recent searches" when empty
+4. api/history.api.ts
+   - Validate the response with `historySchema`
+   - Implement the endpoint fetch for `GET /api/history`
+   - Use the preimplemented helper(s) from `lib/api`
+   - This layer must stay strictly focused on request construction / fetching
+   - Do not put validation or UI logic here
+
+add the History list to WeatherPage.tsx
 
 Rules:
+
 - No `any`
 - Keep components presentational; data fetching in hook only
+
 ```
 
 ---
+// Finished up to here
+
+// something to fix Something went wrong. Please try again later! if this is not a proper city name
 
 ## PROMPT 5 — App Assembly and README
 
 ```
+
 Context: Assemble the Weather Intelligence Dashboard and complete documentation.
 
 1. /frontend/src/App.tsx
@@ -201,6 +284,7 @@ Context: Assemble the Weather Intelligence Dashboard and complete documentation.
    - Listen on PORT env var or 3001
 
 3. /README.md — complete with:
+
    ## Setup
    - Prerequisites: Node 20+, Docker
    - `docker-compose up -d` to start PostgreSQL
@@ -208,6 +292,7 @@ Context: Assemble the Weather Intelligence Dashboard and complete documentation.
    - `cd frontend && npm install && npm run dev`
 
    ## AWS Deployment Shape
+
 ```
 
 Browser
@@ -216,13 +301,16 @@ Browser
 └─→ RDS PostgreSQL (search history)
 
 ```
+
 - Frontend: `npm run build` → upload /dist to S3 → CloudFront distribution
 - Backend: wrap Express handlers in a Lambda adapter (e.g. @vendia/serverless-express)
 - Database: RDS PostgreSQL, connection string via Lambda env var DATABASE_URL
 
 Rules:
+
 - No `any`
 - Keep README concise — bullet points over paragraphs
+
 ```
 
 ---
@@ -230,14 +318,16 @@ Rules:
 ## PROMPT 6 — Tests
 
 ```
+
 Context: Weather Intelligence Dashboard — minimal proportionate test suite.
 
 Frontend (Vitest + React Testing Library):
+
 1. WeatherCard.test.tsx — renders all weather metrics correctly given mock WeatherData
 2. SearchInput.test.tsx — calls onSubmit with city value; disables button when loading=true
-3. useWeather.test.ts — mock fetch; assert Zod validation runs; assert error state on bad response
 
 Backend (Jest + Supertest):
+
 1. weatherService.test.ts — mock Open-Meteo HTTP calls; assert correct WeatherResult shape returned
 2. weather.routes.test.ts — Supertest against Express app:
    - GET /api/weather?city=Sydney → 200 with weather shape
@@ -245,10 +335,12 @@ Backend (Jest + Supertest):
    - GET /api/history → 200 with array
 
 Rules:
+
 - No `any` in test files
 - Mock external HTTP calls (Open-Meteo) — do not make real network calls in tests
 - Keep each test file under ~50 lines
 - No end-to-end Playwright unless time permits
+
 ```
 
 ---
@@ -264,3 +356,4 @@ Apply these to every Cursor session on this project:
 - Keep file count proportionate — do not over-abstract for an app this size
 - Open-Meteo is the only weather API (no OpenWeatherMap)
 - PostgreSQL / TypeORM is implemented but treated as optional per the key brief
+```

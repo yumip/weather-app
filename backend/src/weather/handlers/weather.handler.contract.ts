@@ -6,15 +6,15 @@ export interface HandlerEvent {
   queryStringParameters?: Record<string, string | undefined> | null;
 }
 
-export interface HandlerResponse {
+export interface HandlerResponse<T = unknown> {
   statusCode: number;
-  body: string;
+  body: T;
 }
 
 export function ok(data: unknown): HandlerResponse {
-  return { statusCode: 200, body: JSON.stringify(data) };
+  return { statusCode: 200, body: data };
 }
 
 export function err(statusCode: number, message: string): HandlerResponse {
-  return { statusCode, body: JSON.stringify({ error: message }) };
+  return { statusCode, body: { message: message } };
 }
