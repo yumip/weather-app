@@ -10,8 +10,8 @@ export function useWeather(city: string) {
   return useQuery<WeatherData, Error>({
     queryKey: WEATHER_QUERY_KEYS.byCity(city),
     queryFn: () => getWeather(city),
-    enabled: city.trim().length > 0,
+    enabled: !!city,
     staleTime: WEATHER_STALE_TIME_MS,
-    retry: 1,
+    retry: false,
   });
 }

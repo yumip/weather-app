@@ -35,6 +35,7 @@ export async function getWeatherByCity(city: string): Promise<WeatherResult> {
     geocodingPayloadSchema,
     geoRaw,
     "Invalid geocoding response",
+    404,
   );
 
   const { latitude, longitude, name, country } = geoData.results[0];

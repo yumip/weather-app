@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Box, Typography, Divider, Paper } from "@mui/material";
+import { Box, Divider, Paper } from "@mui/material";
 import { SearchInput } from "../../history/components/SearchInput";
 import { WeatherCard } from "../components/WeatherCard";
 import { useWeather } from "../hooks/useWeather";
@@ -45,13 +45,6 @@ export function WeatherPage() {
     }
     if (data) {
       return <WeatherCard data={data} />;
-    }
-    if (searchCity) {
-      return (
-        <Typography variant="body2" color="text.secondary" align="center">
-          No results found for &ldquo;{searchCity}&rdquo;
-        </Typography>
-      );
     }
     return null;
   };
