@@ -78,6 +78,15 @@ weather-app/
 
 ---
 
+## Assumptions
+
+- The first geocoding match is treated as the intended city result.
+- As the search history is an optional enhancement, even when the database is unavailable, the search flow itself should work as expected.
+- The project is scoped for a take-home assignment, so authentication, advanced personalisation, and full infrastructure provisioning are out of scope.
+- The AWS deployment section describes a future-ready target architecture rather than a fully implemented cloud deployment.
+
+---
+
 ## Architecture Decisions
 
 - **React + TypeScript + Material UI** — strict TypeScript throughout; MUI with a centralised `theme.ts` for all customisation; no inline styling except layout.
@@ -109,6 +118,6 @@ Browser
 ## AI usage:
 
 - Used cursor with sonnet 4.6 for code generation,
-- `IMPLEMENTIAON_BRIEF.md` was created at the start of the task but the final structure and codebases were evolved during implementation and refactoring.
+- `IMPLEMENTIAON_BRIEF.md` was created at the start of the task but the final structure and codebases were evolved by me during implementation and refactoring.
 - `CURSOR_PROMPTS.md` was initially generated with sonnet 4.6 as a working scaffold. It should be treated as a guideline rather than an exact record of the final prompts used, as the prompts were updated iteratively throughout development.
-- All the chat scripts are stores in `cursor_weather_intelligence_dashboard_i.md`
+- All the chat scripts are stored in `cursor_weather_intelligence_dashboard_i.md`
