@@ -271,6 +271,8 @@ Rules:
 
 Context: Assemble the Weather Intelligence Dashboard and complete documentation.
 
+Assemble the Weather Intelligence Dashboard
+
 1. /frontend/src/App.tsx
    - Render ThemeProvider with theme.ts
    - Layout: MUI Container, centred
@@ -283,33 +285,111 @@ Context: Assemble the Weather Intelligence Dashboard and complete documentation.
    - TypeORM DataSource initialisation on startup
    - Listen on PORT env var or 3001
 
-3. /README.md — complete with:
+3. Make sure to rview this weather flow for correctness, edge cases and overengineering risk,
 
-   ## Setup
-   - Prerequisites: Node 20+, Docker
-   - `docker-compose up -d` to start PostgreSQL
-   - `cd backend && npm install && npm run dev`
-   - `cd frontend && npm install && npm run dev`
+   Backend - focus on
+   - error handling consistency
+   - HTTP status correctness
+   - zod validation voundary
+     -upstream API failuer handling
+     -wheter the architecture is adequate for this takehome
 
-   ## AWS Deployment Shape
+   frontend - focus on
+   - if the backend errors are handled in UI correctly,
+   - if the page shows alert/loading/success/empty states in the right order
+   - if stale data can still render during loading?
+   - if history click re-seach flow is safe
+   - any UI glitches, race conditioin or missing edge cases?
+
+   fix implementation and, but
+   report
+   - bugs,
+   - misleading logic,
+   - missing edge cases
+     -things that can be left alone (not required in the assignment)
+   - what you've changed and the reason
+   - what you dismissed proportioanl to the assignment
+
+4. /README.md — complete with:
+
+## update readme so that readme reflects with the code it exists now
+
+## Do not invent infrastructure or features which don't present in the codebase
+
+## Make sure ReadMe is practical and concise
+
+The following sections should be included
+
+## Overview
+
+- brief explanation of the app
+- mention this is the full stack weather intelligence dashabord using openmeteo
+- mention searched history is stored in postgressql as an optional enhancement
+
+  ## Setup
+  - Prerequisites: Node 20+, Docker
+  - `docker-compose up -d` to start PostgreSQL
+  - `cd backend && npm install && npm run dev`
+  - `cd frontend && npm install && npm run dev`
+
+## Project structure
+
+- Make sure folder structure at a high level reflects to the current structure
+
+## Architecture Decisions
+
+Summarise conscious architectural decisions, such as:
+
+- React + TypeScript + Material UI on the frontend
+- TanStack Query for server state
+- Zod validation close to feature/route boundaries
+- Node.js + Express backend
+- Thin handler/route structure with service/repository separation
+- PostgreSQL + TypeORM for recent search history
+- Production-aware but not enterprise-heavy approach
+
+## AWS Deployment Shape
 
 ```
 
 Browser
-└─→ CloudFront → S3 (React SPA build)
-└─→ API Gateway → Lambda (Express handler adapter)
-└─→ RDS PostgreSQL (search history)
+  ├─→ CloudFront
+  │     └─→ S3 (React production build)
+  └─→ API Gateway
+          └─→ Lambda (Node.js backend)
+                  └─→ RDS PostgreSQL (recent search history, optional)
 
 ```
 
 - Frontend: `npm run build` → upload /dist to S3 → CloudFront distribution
-- Backend: wrap Express handlers in a Lambda adapter (e.g. @vendia/serverless-express)
-- Database: RDS PostgreSQL, connection string via Lambda env var DATABASE_URL
+- Backend: the current Node/Express backend is adaptable to lambda behind API gateway.
+- Database: current local postgresSQL is replaceble to RDS PostgreSQL, connection string via Lambda env var DATABASE_URL
+- Configuration: env variables/secret managed outside code
+- Do not add full details of CDK or IaC implementation plans
+- keep it pracrical and high level
 
 Rules:
 
 - No `any`
 - Keep README concise — bullet points over paragraphs
+
+5. Review the current codebase and final README for alignment.
+
+Check:
+
+- whether `frontend/src/App.tsx` reflects the intended app composition
+- whether `backend/src/index.ts` reflects the intended startup flow
+- whether the README matches the actual implementation
+- whether any folder structure described in the README is outdated
+- whether the architecture summary is accurate and proportionate
+
+Do not rewrite the app unless something is clearly inconsistent.
+Flag only:
+
+1. mismatches between README and code
+2. outdated wording
+3. misleading architectural claims
+4. small practical fixes
 
 ```
 
@@ -325,6 +405,7 @@ Frontend (Vitest + React Testing Library):
 
 1. WeatherCard.test.tsx — renders all weather metrics correctly given mock WeatherData
 2. SearchInput.test.tsx — calls onSubmit with city value; disables button when loading=true
+3. HistoryPanel.test.tsx — render five recent searches correctly given mock HistoryItem[]
 
 Backend (Jest + Supertest):
 

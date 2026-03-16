@@ -1,88 +1,46 @@
 # Weather Intelligence Dashboard
 
-A full-stack weather app consuming the [Open-Meteo](https://open-meteo.com/) API (no API key required).
+## Overview
 
----
+A full-stack weather dashboard that lets users search for a city and view current conditions. The frontend calls a Node.js backend, which proxies requests to the [Open-Meteo API](https://open-meteo.com/) (no API key required). Recent searches are optionally stored in PostgreSQL.
 
-## Stack
-
-| Layer    | Technology                              |
-|----------|-----------------------------------------|
+| Layer    | Technology                                                      |
+| -------- | --------------------------------------------------------------- |
 | Frontend | React 19, TypeScript (strict), Material UI, TanStack Query, Zod |
-| Backend  | Node.js, Express, TypeScript (strict), Zod, TypeORM |
-| Database | PostgreSQL 16 (optional — search history) |
-| Local DB | Docker Compose                          |
+| Backend  | Node.js, Express, TypeScript (strict), Zod, TypeORM             |
+| Database | PostgreSQL 16 — optional, powers recent search history          |
+| Local DB | Docker Compose                                                  |
 
 ---
 
 ## Setup
 
-**Prerequisites:** Node 20+, Docker Desktop
+**Prerequisites:** Node 20+, Docker
 
 ```bash
-# 1. Clone and enter the project
-cd weather-app
-
-# 2. Copy backend env vars
+# 1. Copy backend env vars
 cp backend/.env.example backend/.env
 
-# 3. Start PostgreSQL
+# 2. Start PostgreSQL
 docker-compose up -d
 
-# 4. Install dependencies
-cd backend && npm install
-cd ../frontend && npm install
+# 3. Backend (http://localhost:3001)
+cd backend && npm install && npm run dev
+
+# 4. Frontend (http://localhost:5173) — new terminal
+cd frontend && npm install && npm run dev
 ```
 
----
+Vite proxies `/api/*` → `http://localhost:3001` automatically.
 
-## Running Locally
+> The app works without the database — history is silently disabled if PostgreSQL is unavailable.
+
+### Running tests
 
 ```bash
-# Terminal 1 — Backend (http://localhost:3001)
-cd backend
-npm run dev
-
-# Terminal 2 — Frontend (http://localhost:5173)
-cd frontend
-npm run dev
+cd frontend && npm test   # Vitest + React Testing Library
+cd backend  && npm test   # Jest + Supertest
 ```
-
-Vite proxies `/api/*` → `http://localhost:3001` automatically (configured in `vite.config.ts`).
-
----
-
-## Running Tests
-
-```bash
-# Frontend (Vitest)
-cd frontend && npm test
-
-# Backend (Jest + Supertest)
-cd backend && npm test
-```
-
----
-
-## AWS Deployment Shape
-
-```
-Browser
-  └─→ CloudFront (CDN + HTTPS)
-        └─→ S3 (React SPA — static build output)
-              └─→ API Gateway (HTTP API)
-                    └─→ Lambda (Express via @vendia/serverless-express adapter)
-                          └─→ RDS PostgreSQL (search history, private subnet)
-```
-
-### Migration steps (local → AWS)
-
-1. **Frontend** — run `npm run build` in `/frontend`, upload `/dist` to an S3 bucket, point a CloudFront distribution at it.
-2. **Backend** — wrap the Express app with `@vendia/serverless-express`; the handler layer in `/backend/src/handlers/` is already structured for this. Deploy as a Lambda function behind API Gateway.
-3. **Database** — provision an RDS PostgreSQL instance; set `DATABASE_URL` (or individual `DB_*` env vars) as Lambda environment variables. TypeORM `synchronize: false` in production — use migrations instead.
-4. **Secrets** — store DB credentials in AWS Secrets Manager or Parameter Store; inject at Lambda runtime.
-
-> No full infrastructure-as-code is included in this take-home. The application architecture is deployment-ready by design.
 
 ---
 
@@ -92,23 +50,65 @@ Browser
 weather-app/
 ├── frontend/
 │   └── src/
-│       ├── components/        # atoms/ molecules/ organisms/
 │       ├── features/
-│       │   ├── weather/       # search, card, hook, schema
-│       │   └── history/       # list, hook, schema
-│       ├── test/              # vitest setup
+│       │   ├── weather/           # WeatherPage, WeatherCard, useWeather, schema, api
+│       │   └── history/           # HistoryPanel, useHistory, schema, api
+│       ├── shared/
+│       │   └── components/        # SearchInput, ErrorState, LoadingState
+│       ├── lib/api/               # fetchAndParse, requestFactory
 │       ├── theme.ts
 │       ├── App.tsx
 │       └── main.tsx
 ├── backend/
 │   └── src/
-│       ├── handlers/          # Lambda-style thin handlers
-│       ├── routes/            # Express route wiring
-│       ├── services/          # Business logic
-│       ├── repositories/      # TypeORM data access
-│       ├── entities/          # TypeORM entities
-│       ├── dataSource.ts      # TypeORM DataSource config
-│       └── index.ts           # Express entry point
+│       ├── weather/
+│       │   ├── handlers/          # Lambda-style thin handlers + contract
+│       │   ├── routes/            # Express route wiring
+│       │   ├── services/          # Business logic (Open-Meteo calls)
+│       │   ├── repositories/      # TypeORM data access
+│       │   ├── entities/          # TypeORM entity definitions
+│       │   ├── schemas/           # Zod schemas (query params, API payloads)
+│       │   ├── types/             # Shared TypeScript types
+│       │   └── utils/             # WeatherError, parseOrThrow, weather-code map
+│       ├── data-source.ts         # TypeORM DataSource config
+│       └── index.ts               # Express entry point
 ├── docker-compose.yml
 └── README.md
 ```
+
+---
+
+## Architecture Decisions
+
+- **React + TypeScript + Material UI** — strict TypeScript throughout; MUI with a centralised `theme.ts` for all customisation; no inline styling except layout.
+- **TanStack Query** for server state — handles loading/error/stale states, cache invalidation, and query keying per city.
+- **Zod validation co-located with feature/route** — frontend schemas live next to the API call; backend schemas live next to the route handler. No shared schema abstraction.
+- **Node.js + Express** — local runtime; thin Lambda-style handler layer (`ok`/`err` contract) means the backend can be placed behind API Gateway without rewriting business logic.
+- **Service / repository separation** — handlers are kept thin; business logic sits in the service; data access is isolated in the repository. Easy to test each layer independently.
+- **PostgreSQL + TypeORM** — minimal entity and repository; `synchronize: true` in development only. The feature degrades gracefully if the DB is offline.
+- **Production-aware, not enterprise-heavy** — no excessive abstraction; structure scales up without major refactoring.
+
+---
+
+## AWS Deployment Shape
+
+```
+Browser
+  ├─→ CloudFront
+  │     └─→ S3 (React production build)
+  └─→ API Gateway
+          └─→ Lambda (Node.js backend)
+                  └─→ RDS PostgreSQL (recent search history, optional)
+```
+
+- **Frontend** — `npm run build` → upload `/dist` to S3 → point a CloudFront distribution at the bucket.
+- **Backend** — the Express app is adaptable to Lambda behind API Gateway; the existing handler layer requires no rewrite.
+- **Database** — replace local PostgreSQL with RDS; set `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, and `DB_NAME` as Lambda environment variables. Set `NODE_ENV=production` to disable `synchronize`.
+- **Configuration** — env vars and secrets managed outside the codebase (e.g. AWS Secrets Manager or Parameter Store).
+
+## AI usage:
+
+- Used cursor with sonnet 4.6 for code generation,
+- `IMPLEMENTIAON_BRIEF.md` was created at the start of the task but the final structure and codebases were evolved during implementation and refactoring.
+- `CURSOR_PROMPTS.md` was initially generated with sonnet 4.6 as a working scaffold. It should be treated as a guideline rather than an exact record of the final prompts used, as the prompts were updated iteratively throughout development.
+- All the chat scripts are stores in `cursor_weather_intelligence_dashboard_i.md`
