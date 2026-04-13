@@ -4,7 +4,7 @@ import {
   geocodingPayloadSchema,
 } from "../schemas/open-meteo.payload.schema";
 import { WeatherResult } from "../types/weather.types";
-import { WeatherError } from "../utils/error";
+import { AppError, HTTP_STATUS } from "../utils/error";
 import { parseOrThrow } from "../utils/parse-or-throw";
 
 // ── Service ───────────────────────────────────────────────────────────────
@@ -13,17 +13,17 @@ async function fetchJson(url: string): Promise<unknown> {
   try {
     const response = await fetch(url);
     if (!response.ok) {
-      throw new WeatherError(
-        502,
+      throw new AppError(
+        HTTP_STATUS.BAD_GATEWAY,
         `Upstream request failed: ${response.status}`,
       );
     }
     return response.json();
   } catch (e) {
-    if (e instanceof WeatherError) {
+    if (e instanceof AppError) {
       throw e;
     }
-    throw new WeatherError(502, `Weather service unavailable`);
+    throw new AppError(HTTP_STATUS.BAD_GATEWAY, `Weather service unavailable`);
   }
 }
 
@@ -35,7 +35,7 @@ export async function getWeatherByCity(city: string): Promise<WeatherResult> {
     geocodingPayloadSchema,
     geoRaw,
     "Invalid geocoding response",
-    404,
+    HTTP_STATUS.NOT_FOUND,
   );
 
   const { latitude, longitude, name, country } = geoData.results[0];
@@ -82,3 +82,4 @@ export async function getWeatherByCity(city: string): Promise<WeatherResult> {
     timestamp: new Date().toISOString(),
   };
 }
+

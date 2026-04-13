@@ -60,18 +60,23 @@ weather-app/
 │       ├── App.tsx
 │       └── main.tsx
 ├── backend/
-│   └── src/
-│       ├── weather/
-│       │   ├── handlers/          # Lambda-style thin handlers + contract
-│       │   ├── routes/            # Express route wiring
-│       │   ├── services/          # Business logic (Open-Meteo calls)
-│       │   ├── repositories/      # TypeORM data access
-│       │   ├── entities/          # TypeORM entity definitions
-│       │   ├── schemas/           # Zod schemas (query params, API payloads)
-│       │   ├── types/             # Shared TypeScript types
-│       │   └── utils/             # WeatherError, parseOrThrow, weather-code map
-│       ├── data-source.ts         # TypeORM DataSource config
-│       └── index.ts               # Express entry point
+│   ├── src/
+│   │   ├── app.ts             # Express app setup
+│   │   ├── server.ts          # Server/bootstrap entry point
+│   │   ├── data-source.ts     # TypeORM datasource config
+│   │   ├── middlewares/       # Validation and error middleware
+│   │   └── weather/
+│   │       ├── routes/        # Express routes
+│   │       ├── handlers/      # Express handlers and transport-agnostic handler logic
+│   │       ├── services/      # Business logic and weather API integration
+│   │       ├── repositories/  # Search history data access
+│   │       ├── schemas/       # Zod schemas
+│   │       ├── entities/      # TypeORM entities
+│   │       ├── types/         # Shared types
+│   │       └── utils/         # Feature utilities
+│   ├── jest.config.js
+│   ├── package.json
+│   └── tsconfig.json
 ├── docker-compose.yml
 └── README.md
 ```
@@ -89,13 +94,13 @@ weather-app/
 
 ## Architecture Decisions
 
-- **React + TypeScript + Material UI** — strict TypeScript throughout; MUI with a centralised `theme.ts` for all customisation; no inline styling except layout.
-- **TanStack Query** for server state — handles loading/error/stale states, cache invalidation, and query keying per city.
-- **Zod validation co-located with feature/route** — frontend schemas live next to the API call; backend schemas live next to the route handler. No shared schema abstraction.
-- **Node.js + Express** — local runtime; thin Lambda-style handler layer (`ok`/`err` contract) means the backend can be placed behind API Gateway without rewriting business logic.
-- **Service / repository separation** — handlers are kept thin; business logic sits in the service; data access is isolated in the repository. Easy to test each layer independently.
-- **PostgreSQL + TypeORM** — minimal entity and repository; `synchronize: true` in development only. The feature degrades gracefully if the DB is offline.
-- **Production-aware, not enterprise-heavy** — no excessive abstraction; structure scales up without major refactoring.
+- **React + TypeScript + Material UI** — strict TypeScript throughout, with MUI and a centralised `theme.ts` for consistent styling and theming.
+- **TanStack Query for server state** — handles loading, error, caching, and query invalidation cleanly while keeping async state management simple.
+- **Zod validation at the boundary** — frontend schemas are co-located with feature API usage, while backend request validation is handled through reusable Express middleware. External API payloads are also validated with Zod before use.
+- **Node.js + Express with a thin adapter layer** — Express routes remain lightweight, while thin Express handlers adapt `req`/`res` into a transport-agnostic handler contract. This keeps the core request-handling flow reusable and easier to adapt to API Gateway/Lambda later.
+- **Clear separation of concerns** — routes define endpoints, handlers manage HTTP adaptation, services contain business logic and weather API integration, and repositories isolate persistence concerns for search history.
+- **PostgreSQL + TypeORM** — minimal persistence layer for recent search history, with graceful degradation when the database is unavailable. `synchronize: true` is used only for local development convenience.
+- **Production-aware without overengineering** — the structure stays intentionally small and interview-appropriate, while still keeping validation, error handling, integration logic, and persistence clearly separated.
 
 ---
 
@@ -110,10 +115,10 @@ Browser
                   └─→ RDS PostgreSQL (recent search history, optional)
 ```
 
-- **Frontend** — `npm run build` → upload `/dist` to S3 → point a CloudFront distribution at the bucket.
-- **Backend** — the Express app is adaptable to Lambda behind API Gateway; the existing handler layer requires no rewrite.
-- **Database** — replace local PostgreSQL with RDS; set `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, and `DB_NAME` as Lambda environment variables. Set `NODE_ENV=production` to disable `synchronize`.
-- **Configuration** — env vars and secrets managed outside the codebase (e.g. AWS Secrets Manager or Parameter Store).
+- **Frontend** — static React build hosted on S3 behind CloudFront.
+- **Backend** — Node.js backend adapted to run behind API Gateway and Lambda.
+- **Database** — optional PostgreSQL search history can be hosted in RDS.
+- **Configuration** — secrets and environment variables managed outside the codebase.
 
 ## AI usage:
 

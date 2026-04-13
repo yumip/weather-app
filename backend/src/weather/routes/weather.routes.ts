@@ -1,30 +1,19 @@
 import { Router, Request, Response } from "express";
 import {
-  handleGetWeather,
-  handleGetHistory,
+  getWeatherHandler,
+  getHistoryHandler,
 } from "../handlers/weather.handler";
-import { HandlerEvent } from "../handlers/weather.handler.contract";
+import { validateQuery } from "../../middlewares/validation.middleware";
+import { cityQuerySchema } from "../schemas/weather-query.schema";
 
 const router = Router();
-
-function toHandlerEvent(req: Request): HandlerEvent {
-  return {
-    queryStringParameters: req.query as Record<string, string | undefined>,
-  };
-}
 
 router.get("/health", (_req: Request, res: Response) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-router.get("/weather", async (req: Request, res: Response) => {
-  const result = await handleGetWeather(toHandlerEvent(req));
-  res.status(result.statusCode).json(result.body);
-});
+router.get("/weather", validateQuery(cityQuerySchema), getWeatherHandler);
 
-router.get("/history", async (req: Request, res: Response) => {
-  const result = await handleGetHistory(toHandlerEvent(req));
-  res.status(result.statusCode).json(result.body);
-});
+router.get("/history", getHistoryHandler);
 
 export default router;
