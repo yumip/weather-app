@@ -1,5 +1,8 @@
 # Weather Intelligence Dashboard
 
+<img width="1150" height="760" alt="Screenshot 2026-04-16 at 7 30 11 pm" src="https://github.com/user-attachments/assets/c4a00059-c5cb-417e-ab27-5513b9022ebe" />
+
+
 ## Overview
 
 A full-stack weather dashboard that lets users search for a city and view current conditions. The frontend calls a Node.js backend, which proxies requests to the [Open-Meteo API](https://open-meteo.com/) (no API key required). Recent searches are optionally stored in PostgreSQL.
